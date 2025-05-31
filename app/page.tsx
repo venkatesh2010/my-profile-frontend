@@ -1,6 +1,6 @@
 // src/app/page.tsx
 'use client'; // This directive is needed for client-side hooks like useEffect
-
+import Image from "next/image";
 import { useState, useEffect } from 'react';
 
 interface Post {
@@ -33,8 +33,12 @@ export default function Home() {
         }
         const data: Post[] = await response.json();
         setPosts(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred while fetching posts.');
+        }
       } finally {
         setLoading(false);
       }
@@ -59,10 +63,18 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-4xl">
         {posts.map((post) => (
-          <div key={post.id} className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <div key={post.id} className="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col">
             {post.imageUrl && (
-              // Using a simple img tag for external URL; Next.js Image component for optimized local images
-              <img src={post.imageUrl} alt={post.title} className="w-full h-40 object-cover rounded-md mb-4" />
+              <div className="relative w-full h-40 rounded-md mb-4 overflow-hidden">
+                <Image
+                  src={post.imageUrl}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" // Adjust sizes as per your layout
+                  // Ensure the hostname of post.imageUrl is configured in next.config.ts
+                />
+              </div>
             )}
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">{post.title}</h2>
             <p className="text-gray-700 text-sm mb-4">{post.excerpt}</p>
